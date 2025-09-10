@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload File to ChromaDB</title>
+</head>
+<body>
+    <h2>Upload a file</h2>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        document.getElementById('uploadForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Read file as text
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const text = event.target.result;
+                // Encode text to UTF-8 bytes
+                const encoder = new TextEncoder();
+                const utf8Bytes = encoder.encode(text);
+
+                // Create a Blob and FormData
+                const blob = new Blob([utf8Bytes], { type: "text/plain" });
+                const formData = new FormData();
+                formData.append('file', blob, file.name);
+
+                // Send to backend
+                const response = await fetch('/embed', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                document.getElementById('result').innerText = JSON.stringify(result, null, 2);
+            };
+            reader.readAsText(file);
+        };
+    </script>
+</body>
+</html>

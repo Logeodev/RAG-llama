@@ -1,0 +1,53 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8000:80"
+    depends_on:
+      - ollama
+    volumes:
+      - ./api:/app
+    environment:
+      - LLM_URL=http://ollama:11434
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    networks: [rag-network]
+
+  mlflow: # can be enhanced with separate db : https://medium.com/@hitorunajp/remote-mlflow-setup-with-docker-de54652241a4
+    build:
+      context: .
+      dockerfile: mlflow/Dockerfile
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000
+    volumes:
+      - ./mlflow:/mlflow
+    networks: [rag-network]
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11435:11434"
+    tty: true
+    networks: [rag-network]
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 8g
+
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:1.0.21.dev60
+    ports:
+      - "8001:8000"
+    networks: [rag-network]
+
+volumes:
+  ollama-data:
+
+networks:
+  rag-network:
+    driver: bridge

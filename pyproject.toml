@@ -1,0 +1,23 @@
+[project]
+name = "rag-stack"
+version = "0.1.0"
+dependencies = [
+  "fastapi",
+  "langchain",
+  "sentence-transformers",
+  "ollama",
+  "mlflow",
+  "chromadb",
+  "smolagents",
+  "openai"
+]
+
+[project.optional-dependencies]
+api = ["fastapi", "pydantic"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["api"]

@@ -1,0 +1,9 @@
+uvicorn
+fastapi
+chromadb
+ollama
+python-multipart
+mlflow
+smolagents
+langchain
+openai
