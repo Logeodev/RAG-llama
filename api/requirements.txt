@@ -6,4 +6,4 @@ python-multipart
 mlflow
 smolagents
 langchain
-openai
+smolagents[litellm]

@@ -9,7 +9,7 @@ dependencies = [
   "mlflow",
   "chromadb",
   "smolagents",
-  "openai"
+  "smolagents[litellm]"
 ]
 
 [project.optional-dependencies]

@@ -1,5 +1,5 @@
 import ollama, chromadb, os
-from smolagents import CodeAgent, Tool, OpenAIModel
+from smolagents import ToolCallingAgent, Tool, LiteLLMModel
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -11,8 +11,7 @@ COLLECTION_NAME = "rag_docs"
 COLLECTION = CHROMA_CLIENT.get_or_create_collection(COLLECTION_NAME)
 
 # LLM and embedding model setup (Ollama)
-EMBED_MODEL = "all-minilm"
-LLM_MODEL = "smollm"
+LLM_MODEL = "granite3-dense:8b" #"qwen3:8b"
 OLLAMA_URI = os.getenv("LLM_URL", "http://localhost:11434")
 OLLAMA_CLIENT = ollama.Client(host=OLLAMA_URI)
 
@@ -33,13 +32,10 @@ def embed_file_to_chroma(filename: str, content: str):
     
     # Embed each chunk
     for i, chunk in enumerate(chunks):
-        response = OLLAMA_CLIENT.embed(model=EMBED_MODEL, input=chunk.page_content)
-        embeddings = response["embeddings"]
         doc_id = f"{filename}_chunk_{i}"
         
         COLLECTION.add(
             ids=[doc_id],
-            embeddings=embeddings,
             documents=[chunk.page_content],
             metadatas=[{"source": filename, "chunk_index": i}]
         )
@@ -63,15 +59,12 @@ class ChromaRetrieverTool(Tool):
     def forward(self, query: str) -> str:
         """Execute the retrieval based on the provided query."""
         assert isinstance(query, str), "Your search query must be a string"
-
-        # Get query embedding
-        response = OLLAMA_CLIENT.embed(model=EMBED_MODEL, input=query)
-        query_embedding = response["embeddings"]
         
         # Retrieve relevant documents from ChromaDB
         results = COLLECTION.query(
-            query_embeddings=query_embedding,
-            n_results=10
+            query_texts=query,
+            n_results=10,
+            include=["documents", "distances", "metadatas"],
         )
         
         if not results['documents'] or not results['documents'][0]:
@@ -94,16 +87,12 @@ class ChromaRetrieverTool(Tool):
 class RAG_Agent:
     def __init__(self):
         self.tools = [ChromaRetrieverTool()]
-        self.model = OpenAIModel(
-            model_id=LLM_MODEL,
-            api_base=OLLAMA_URI,
-            api_key="some-api-key"  # No API key needed for local Ollama instance, but Ollama gives one on startup if needed
-            )
-        self.agent = CodeAgent(
-            tools=self.tools, 
+        self.model = LiteLLMModel(model_id=f"ollama_chat/{LLM_MODEL}", api_base=OLLAMA_URI)
+        self.agent = ToolCallingAgent(
+            tools=self.tools,
             model=self.model,
-            # max_steps=4,
-            # verbosity_level=2
+            max_steps=2,
+            verbosity_level=2
         )
     
     def run(self, prompt: str) -> str:
