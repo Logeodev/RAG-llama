@@ -26,32 +26,14 @@ services:
       - "11435:11434"
     tty: true
     runtime: nvidia # https://docs.docker.com/desktop/features/gpu/
-
-  # db:
-  #   image: postgres:15
-  #   container_name: crewai_db
-  #   env_file:
-  #     - ./CrewAI-Studio/.env
-  #   environment:
-  #     POSTGRES_USER: crewai_user
-  #     POSTGRES_PASSWORD: secret
-  #     POSTGRES_DB: crewai
-  #   volumes:
-  #     - db-data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-
-  # # The Streamlit app : https://github.com/strnad/CrewAI-Studio/tree/main
-  # web:
-  #   build: ./CrewAI-Studio
-  #   container_name: crewai_studio
-  #   depends_on:
-  #     - db
-  #   env_file:
-  #     - ./CrewAI-Studio/.env
-  #   ports:
-  #     - "8501:8501"
+  
+  agents-runner:
+    build:
+      context: .
+      dockerfile: dev-agents.Dockerfile
+    volumes:
+      - ./src:/app
+      - ./requirements.txt:/app/requirements.txt
 
 volumes:
   ollama-data:
-  # db-data:
