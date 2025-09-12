@@ -1,29 +1,22 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: api/Dockerfile
+  anythingllm:
+    image: mintplexlabs/anythingllm:latest
     ports:
-      - "8000:80"
-    depends_on:
-      - ollama
-    volumes:
-      - ./api:/app
+      - 3001:3001
     environment:
-      - LLM_URL=http://ollama:11434
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
-    networks: [rag-network]
+      - STORAGE_DIR=/app/server/storage
+    volumes:
+      - ./data/anythingllm:/app/server/storage
+      # - ./data/anythingllm/.env:/app/server/.env
 
   mlflow: # can be enhanced with separate db : https://medium.com/@hitorunajp/remote-mlflow-setup-with-docker-de54652241a4
     build:
-      context: .
-      dockerfile: mlflow/Dockerfile
+      context: ./mlflow
     ports:
       - "5000:5000"
     command: mlflow server --host 0.0.0.0 --port 5000
     volumes:
       - ./mlflow:/mlflow
-    networks: [rag-network]
 
   ollama:
     image: ollama/ollama:latest
@@ -32,27 +25,33 @@ services:
     ports:
       - "11435:11434"
     tty: true
-    networks: [rag-network]
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-        limits:
-          cpus: '2.0'
-          memory: 8g
+    runtime: nvidia # https://docs.docker.com/desktop/features/gpu/
 
-  chromadb:
-    image: ghcr.io/chroma-core/chroma:1.0.21.dev60
-    ports:
-      - "8001:8000"
-    networks: [rag-network]
+  # db:
+  #   image: postgres:15
+  #   container_name: crewai_db
+  #   env_file:
+  #     - ./CrewAI-Studio/.env
+  #   environment:
+  #     POSTGRES_USER: crewai_user
+  #     POSTGRES_PASSWORD: secret
+  #     POSTGRES_DB: crewai
+  #   volumes:
+  #     - db-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+  # # The Streamlit app : https://github.com/strnad/CrewAI-Studio/tree/main
+  # web:
+  #   build: ./CrewAI-Studio
+  #   container_name: crewai_studio
+  #   depends_on:
+  #     - db
+  #   env_file:
+  #     - ./CrewAI-Studio/.env
+  #   ports:
+  #     - "8501:8501"
 
 volumes:
   ollama-data:
-
-networks:
-  rag-network:
-    driver: bridge
+  # db-data:

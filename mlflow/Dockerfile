@@ -8,4 +8,4 @@ RUN mkdir -p /mlflow
 
 WORKDIR /mlflow
 
-COPY config_tracking.py .
+COPY ./config_tracking.py .
