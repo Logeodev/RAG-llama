@@ -1,9 +1,12 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
 COPY ./src /app
 
-RUN pip install -r /app/requirements.txt
+COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app
+
+RUN pip install --upgrade pip --root-user-action=ignore \
+    && pip install -r requirements.txt
 
 VOLUME /app

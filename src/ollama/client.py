@@ -9,12 +9,12 @@ OllamaClient = OpenAI(
 )
 
 def set_mlflow_tracking(experiment_name: str):
-    import mlflow
-
     mlflow.openai.autolog()
-
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment(experiment_name)
+
+def disable_mlflow_tracking():
+    mlflow.openai.autolog(disable=True)
 
 def get_token_usage(trace_id = None):
     if trace_id is None:

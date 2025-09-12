@@ -7,5 +7,3 @@ EXPOSE 5000
 RUN mkdir -p /mlflow
 
 WORKDIR /mlflow
-
-COPY ./config_tracking.py .
