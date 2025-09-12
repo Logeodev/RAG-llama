@@ -7,7 +7,7 @@ app = FastAPI()
 
 @app.get("/")
 def serve_upload_form():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "uploadForm.html"))
+    return FileResponse(os.path.join(os.path.dirname(__file__), "index.html"))
 
 @app.post("/embed")
 async def embed(file: UploadFile = File(...)):
